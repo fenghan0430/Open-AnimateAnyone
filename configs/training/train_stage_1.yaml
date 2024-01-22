@@ -1,8 +1,8 @@
 image_finetune: true
 
 output_dir: "outputs"
-pretrained_model_path: "./pretrained_models/stable-diffusion-v1-5"
-clip_model_path: "./pretrained_models/clip-vit-base-patch32"
+pretrained_model_path: "../stable-diffusion-v1-5"
+clip_model_path: "../clip-vit-base-patch32"
 # clip_model_path: "./pretrained_models/clip-vit-large-patch14"
 poseguider_checkpoint_path: ""
 referencenet_checkpoint_path: ""
@@ -36,13 +36,13 @@ unet_additional_kwargs:
 
 
 train_data:
-  # csv_path:     "./data/UBC_train_info_test.csv"
+  # csv_path:     "/UBC_train_info_test.csv"
   csv_path:     "./data/UBC_train_info.csv"
-  video_folder: "./UBC_dataset"
+  video_folder: "./ubc-fashion-dataset"
   sample_size:  512 # for 40G 256
   sample_stride: 4
   sample_n_frames: 16
-  clip_model_path: "./pretrained_models/clip-vit-base-patch32"
+  clip_model_path: "../clip-vit-base-patch32"
 
 
 validation_data:

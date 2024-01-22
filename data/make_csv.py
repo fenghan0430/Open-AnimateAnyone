@@ -1,15 +1,15 @@
 import os
 import csv
 
-dataset_folder = '../../TikTok_dataset'
-csv_path = 'TikTok_info.csv'
+# dataset_folder = '../../TikTok_dataset'
+# csv_path = 'TikTok_info.csv'
 
-dataset_folder = '../../UBC_dataset'
+# dataset_folder = '../../UBC_dataset'
 
-dataset_folder = '../../UBC_dataset/train'
-csv_path = 'UBC_train_info.csv'
+# dataset_folder = '/home/fengh/work/ubc-fashion-dataset/train'
+# csv_path = 'UBC_train_info.csv'
 
-dataset_folder = '../../UBC_dataset/test'
+dataset_folder = '/home/fengh/work/ubc-fashion-dataset/test'
 csv_path = 'UBC_test_info.csv'
 
 with open(csv_path, 'w', newline='') as csvfile:
