@@ -1,89 +1,143 @@
-# Unofficial Implementation of Animate Anyone
+# Open-Animate Anyone 第一阶段训练方法
 
-If you find this repository helpful, please consider giving us a star⭐!
+## 目录
 
-We only train on small-scale datasets (such as TikTok, UBC), and it is difficult to achieve official results under the condition of insufficient data scale and quality. Because of the consideration of time and cost, we do not intend to collect and filter a large number of high-quality data. If someone has a robust model trained on a large amount of high-quality data and is willing to share it, make a pull request.
+## 准备环境
 
-## Overview
-This repository contains an simple and unofficial implementation of [Animate Anyone](https://humanaigc.github.io/animate-anyone/). This project is built upon [magic-animate](https://github.com/magic-research/magic-animate/tree/main) and [AnimateDiff](https://github.com/guoyww/AnimateDiff). This implementation is first developed by [Qin Guo](https://github.com/guoqincode) and then assisted by [Zhenzhi Wang](https://zhenzhiwang.github.io/).
+> 根据`fast_env.sh`
 
-## Training Guidance
-Although we cannot use large-scale data to train the model, we can provide several training suggestions:
-1. In our experiments, the poseguider in the original paper of AnimateAnyone is very difficult to control pose, no matter what activation function we use (such as ReLU, SiLU), but the output channel is enlarged to 320 and added after conv_in (such as model.hack_poseguider ) is very effective, and at the same time, compared to controlnet, this solution is more lightweight (<1M para vs 400M para). But we still think that Controlnet is a good choice. Poseguider relies on unet that is fine-tuned at the same time and cannot be used immediately. Plug and play.
-2. In small-scale data sets (less than 2000 videos), stage1 can work very well (including generalization), but stage2 is data hungry. When the amount of data is low, artifacts and flickers can easily occur. Because we retrained unet in the first stage, the checkpoint of the original animatediff lost its effect, so a large number of high-quality data sets are needed to retrain the motion module of animatediff at this stage.
-3. Freezing unet is not a good choice as it will lose the texture information of the reference image.
-4. This is a data hungry task. We believe that scale up data quality and scale are often more valuable than modifying the tiny structure of the model. Data quantity and quality are very important!
-5. High-resolution training is very important, which affects the learning and reconstruction of details. The training resolution should not be greater than the inference resolution.
-
-
-## Sample of Result on UBC-fashion dataset
-### Stage 1
-The current version of the face still has some artifacts.  This model is trained on the UBC dataset rather than a large-scale dataset.
-<table class="center">
-    <tr><td><img src="./assets/stage1/1.png"></td><td><img src="./assets/stage1/2.png"></td></tr>
-    <tr><td><img src="./assets/stage1/3.png"></td><td><img src="./assets/stage1/8.png"></td></tr>
-    <tr><td><img src="./assets/stage1/9.png"></td><td><img src="./assets/stage1/10.png"></td></tr>
-    <tr><td><img src="./assets/stage1/4.png"></td><td><img src="./assets/stage1/5.png"></td></tr>
-    <tr><td><img src="./assets/stage1/6.png"></td><td><img src="./assets/stage1/7.png"></td></tr>
-
-</table>
-<p style="margin-left: 2em; margin-top: -1em"></p>
-
-### Stage 2
-The training of stage2 is challenging due to artifacts in the background. We select one of our best results here, and are still working on it. An important point is to ensure that training and inference resolution is consistent.
-<table class="center">
-    <tr><td><img src="./assets/stage2/1.gif"></td></tr>
-
-</table>
-<p style="margin-left: 2em; margin-top: -1em"></p>
-
-## ToDo
-- [x] **Release Training Code.**
-- [x] **Release Inference Code.** 
-- [ ] **Release Unofficial Pre-trained Weights.**
-- [x] **Release Gradio Demo.**
-
-## Requirements
+新建个虚拟环境
 
 ```bash
-bash fast_env.sh
+conda create -n animate python=3.8.18
+conda activate animate
 ```
 
-## 🎬Gradio Demo
-```python
-python3 -m demo.gradio_animate
-```
-For a 13-second pose video, processing at 256 resolution requires 11G VRAM, and at 512 resolution, it requires 23.5G VRAM.
+其他依赖
 
-## Training
-### Original AnimateAnyone Architecture (It is difficult to control pose when training on a small dataset.)
-#### First Stage
+```bash
+# 先装torch
+pip install torch==1.13.1+cu117 torchvision==0.14.1+cu117 torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cu117
 
-```python
-torchrun --nnodes=8 --nproc_per_node=8 train.py --config configs/training/train_stage_1.yaml
-```
-
-#### Second Stage
-
-```python
-torchrun --nnodes=8 --nproc_per_node=8 train.py --config configs/training/train_stage_2.yaml
-```
-
-### Our Method (A more dense pose control scheme, the number of parameters is still small.) (Highly recommended)
-```python
-torchrun --nnodes=8 --nproc_per_node=8 train_hack.py --config configs/training/train_stage_1.yaml
-```
-
-#### Second Stage
-
-```python
-torchrun --nnodes=8 --nproc_per_node=8 train_hack.py --config configs/training/train_stage_2.yaml
+# 其他依赖
+pip install diffusers==0.21.4
+pip install transformers==4.32.0
+pip install tqdm==4.66.1
+pip install omegaconf==2.3.0
+pip install einops==0.6.1
+pip install opencv-python==4.8.0.76
+pip install Pillow==9.5.0
+pip install safetensors==0.3.3
+pip install decord==0.6.0
+pip install wandb==0.16.1
+pip install accelerate==0.22.0
+pip install av==11.0.0
+pip install imageio==2.9.0
+pip install imageio-ffmpeg
+pip install gradio==3.41.2
+pip install xformers==0.0.16
 ```
 
+下载预训练模型和clip
 
-## Acknowledgements
-Special thanks to the original authors of the [Animate Anyone](https://humanaigc.github.io/animate-anyone/) project and the contributors to the [magic-animate](https://github.com/magic-research/magic-animate/tree/main) and [AnimateDiff](https://github.com/guoyww/AnimateDiff) repository for their open research and foundational work that inspired this unofficial implementation.
+```bash
+cd pretrained_models
+# 记得装lfs
+git clone https://huggingface.co/runwayml/stable-diffusion-v1-5
+git clone https://huggingface.co/openai/clip-vit-base-patch32
+```
 
-## Email
+## 准备数据
 
-For academic or business cooperation only: guoqin@stu.pku.edu.cn
+### 下载数据集
+
+下载ubc-fashion数据集，来自`https://vision.cs.ubc.ca/datasets/fashion/`
+
+> 吐槽UBC，UBC把数据集上传到了亚马逊云。写了一个简易的下载脚本，但是下载脚本过于简易，甚至没有中断后继续下载。
+> 
+> 国内推荐去我的百度云下载。
+
+```bash
+# 文件结构如下
+ubc-fashion-dataset
+|-train/
+|  |-视频
+|-test/
+|  |-视频
+|-其他...
+```
+
+训练集和测试集一共600个视频。下载完成后把数据集移动到项目根目录下
+
+```sh
+mv ./ubc-fashion-dataset 你的项目位置
+```
+
+### 制作csv
+
+data文件夹下有make_csv.py脚本，这个是制作csv的脚本
+
+在`make_csv.py`把`dataset_folder`设置为视频的路径，把`csv_path`设置为生成的csv的输出路径。
+
+**注意**运行这个脚本需要在`data/`下，因为生成的csv文件需要保存在`data/`目录
+
+```bash
+cd data/
+
+python make_csv.py
+```
+
+脚本运行完成后，会有`UBC_train_info.csv`和`UBC_test_info.csv`两个文件。
+
+### 制作动作序列
+
+为ubc数据集的视频制作动作序列。该项目使用的是[DWPose](https://github.com/IDEA-Research/DWPose)。
+
+有一些必要的模型文件要从huggingface下载[https://huggingface.co/yzd-v/DWPose/tree/main](https://huggingface.co/yzd-v/DWPose/tree/main)
+
+将仓库克隆下来后，需要确保仓库保存到了`DWPose/`文件夹下，并改名成`dwpose_ckpts`
+
+```bash
+cd DWPose/
+
+git clone https://huggingface.co/yzd-v/DWPose
+
+mv DWPose dwpose_ckpts
+```
+
+这样我们就完成了模型的下载。
+
+接着，打开`prepare_ubc.py`，修改其中的变量`dataset_folder`为你的ubc数据集的地址，随后就可以开始运行脚本。
+
+脚本会把动作序列生成到数据集目录下的`train_dwpose`和`test_dwpose`。
+
+> 细心的孩子会发现CPU使用率满了，没错，脚本使用CPU生成动作序列。
+
+## 调整训练参数
+
+### 第一阶段训练
+
+打开第一阶段的训练配置文件`train_stage_1.yaml`，在`configs/training/`下。
+
+从上往下调整参数：
+
+- `pretrained_model_path`和`clip_model_path`是指v1.5模型和CLIP模型的位置，确定位置是正确的。
+- `train_data`下有`csv_path`、`video_folder`和`clip_model_path`。其中`csv_path`指csv的位置；`video_folder`是指ubc数据集的位置；`clip_model_path`是CLIP的位置。
+
+调整完这些参数就可以开始第一阶段的训练了。
+
+## 开始训练
+
+根据作者介绍，该项目至少需要80GB的显存才能运行。
+
+下面是启动命令的示例：
+
+```shell
+# 单机单卡
+torchrun --nproc_per_node=1 train_hack.py --config configs/training/train_stage_1.yaml
+
+# 单机多卡
+torchrun --nproc_per_node=4 train_hack.py --config configs/training/train_stage_1.yaml
+
+# 多机多卡(正在学习)
+```
