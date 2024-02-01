@@ -55,7 +55,12 @@ git clone https://huggingface.co/openai/clip-vit-base-patch32
 
 > 吐槽UBC，UBC把数据集上传到了亚马逊云。写了一个简易的下载脚本，但是下载脚本过于简易，甚至没有中断后继续下载。
 > 
-> 国内推荐去我的百度云下载。
+> 如果无法下载，推荐去我的百度云下载。
+
+```bash
+链接：https://pan.baidu.com/s/1kqxGp_8Iboz-nZbjxJTt-w 
+提取码：ai00
+```
 
 ```bash
 # 文件结构如下
