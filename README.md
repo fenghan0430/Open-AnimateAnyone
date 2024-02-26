@@ -112,11 +112,11 @@ mv DWPose dwpose_ckpts
 
 这样我们就完成了模型的下载。
 
+> 你可以使用`pip install onnxruntime-gpu`来使用gpu运行这个脚本
+
 接着，打开`prepare_ubc.py`，修改其中的变量`dataset_folder`为你的ubc数据集的地址，随后就可以开始运行脚本。
 
 脚本会把动作序列生成到数据集目录下的`train_dwpose`和`test_dwpose`。
-
-> 细心的孩子会发现CPU使用率满了，没错，脚本使用CPU生成动作序列。
 
 ## 调整训练参数
 
